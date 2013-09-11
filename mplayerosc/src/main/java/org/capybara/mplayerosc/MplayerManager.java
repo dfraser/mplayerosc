@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,15 +25,23 @@ public class MplayerManager {
 	private String mplayerPath;
 
 	private ExecutorService outputPrinter;
+
+	private String mplayerCommandLine;
 	
-	public MplayerManager(String mplayerPath) {
+	public MplayerManager(String mplayerPath,String mplayerCommandLine) {
 		this.mplayerPath = mplayerPath;
+		this.mplayerCommandLine = mplayerCommandLine;
 	}
 	
 	public void start() throws IOException {
-		ProcessBuilder pb = new ProcessBuilder(mplayerPath,"-slave","-quiet","-idle","-fs","-zoom","−fixed−vo");
+		List<String> args = new ArrayList<>();
+		args.add(mplayerPath);
+		args.addAll(Arrays.asList(mplayerCommandLine.split(" ")));
+
+
+		ProcessBuilder pb = new ProcessBuilder(args);
 		Map<String,String> env = pb.environment();
-//		env.put("DISPLAY","localhost:0");
+		env.put("DISPLAY","localhost:0");
 		mplayerProcess = pb.start();
 		mplayerCommand =  new PrintStream(mplayerProcess.getOutputStream());
 		mplayerReader = new BufferedReader(new InputStreamReader(mplayerProcess.getInputStream()));
@@ -39,6 +50,7 @@ public class MplayerManager {
 	}
 	
 	public void sendCommand(String command) {
+		log.info("sending command: "+command);
 		mplayerCommand.println(command);
 		mplayerCommand.flush();
 	}

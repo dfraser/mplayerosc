@@ -46,16 +46,18 @@ public class App
 		int oscPort = Integer.parseInt(p.getProperty("osc.listenPort"));
 		int oscReplyPort = Integer.parseInt(p.getProperty("osc.replyPort"));
 		Path videoPath = Paths.get(p.getProperty("video.path"));
+		String mplayerCommandLine = p.getProperty("mplayer.commandLine");
+		String pauseClip = p.getProperty("mplayer.pauseClip");
 
 		c = OSCServer.newUsing( OSCServer.UDP, oscPort);
 
-		MplayerManager mplayer = new MplayerManager(mplayerPath);
+		MplayerManager mplayer = new MplayerManager(mplayerPath,mplayerCommandLine);
 		mplayer.start();
 
 		VideoMap vidMap = new VideoMap(videoPath);
 		vidMap.updateMap();
 
-		c.addOSCListener(new MplayerMessageListener(c,oscReplyPort,mplayer, vidMap));
+		c.addOSCListener(new MplayerMessageListener(c,oscReplyPort,mplayer, vidMap, pauseClip));
 
 		c.start();
 

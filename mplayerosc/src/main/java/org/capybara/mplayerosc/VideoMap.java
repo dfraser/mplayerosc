@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
@@ -28,7 +27,7 @@ public class VideoMap {
 		videoList.clear();
 		int i = 1;
 		try (DirectoryStream<Path> stream =
-		     Files.newDirectoryStream(path, "*.{avi,jpg,png}")) {
+		     Files.newDirectoryStream(path, "*.{avi,jpg,png,mov}")) {
 		    for (Path entry: stream) {
 		    	String videoName = FilenameUtils.removeExtension(entry.getFileName().toString());
 		    	videoList.put(i, new Video(videoName, 	entry, i));
