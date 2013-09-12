@@ -37,10 +37,14 @@ public class MplayerMessageListener implements OSCListener {
 	@Override
 	public void messageReceived(OSCMessage m, SocketAddress sender, long time) {
 		try {
-			if (((Number) m.getArg(0)).doubleValue() == 1.0) {
+			InetSocketAddress rxAddr = (InetSocketAddress) sender;
+			InetSocketAddress txAddr = new InetSocketAddress(rxAddr.getAddress(), oscReplyPort);
+
+			if ("/volume".equals(m.getName())) {
+				int volLevel = (int) (((Number) m.getArg(0)).doubleValue() * 100);
+				mplayer.sendCommand("volume "+volLevel+" 1");
+			} else if (((Number) m.getArg(0)).doubleValue() == 1.0) {
 				log.debug("button down: "+m.getName());
-				InetSocketAddress rxAddr = (InetSocketAddress) sender;
-				InetSocketAddress txAddr = new InetSocketAddress(rxAddr.getAddress(), oscReplyPort);
 				if ("/refresh".equals(m.getName())) {
 					updateButtons(txAddr);
 				}
@@ -70,7 +74,7 @@ public class MplayerMessageListener implements OSCListener {
 					setPauseButtonState(pauseState,txAddr);
 				}
 			}
-			Thread.sleep(100);			
+//			Thread.sleep(100);			
 
 		} catch(Exception e) {
 			log.error("error handling message: "+e.getMessage(),e);
@@ -110,27 +114,35 @@ public class MplayerMessageListener implements OSCListener {
 		boolean foundPauseClip = false;
 		boolean foundBlackClip = false;
 		Map<Integer, Video> map = vidMap.getMap();
-		for (int index : map.keySet()) {
-			sendMessage("/vid/label_"+index,map.get(index).getName(), txAddr);
-			if (isImage(index)) {
-				sendMessage("/vid/label_"+index+"/color","green", txAddr);
-				sendMessage("/vid/button_"+index+"/color","green", txAddr);
-			} else {
-				sendMessage("/vid/label_"+index+"/color","red", txAddr);
-				sendMessage("/vid/button_"+index+"/color","red", txAddr);
+		for (int index = 1; index < 43; index++) {
+			if (map.containsKey(index)) {
+				sendMessage("/vid/label_"+index+"/visible",new Double(1),txAddr);
+				sendMessage("/vid/button_"+index+"/visible",new Double(1),txAddr);
 				
-			}
-			if (map.get(index).getPath().getFileName().toString().equals(pauseClip)) {
-				pauseClipIndex = index;
-				sendMessage("/vid/label_pause",map.get(index).getName(), txAddr);
-				log.debug("setting pause clip to "+pauseClip+" index "+index);
-				foundPauseClip = true;
-			}
-			if (map.get(index).getPath().getFileName().toString().equals("black.jpg")) {
-				blackClipIndex = index;
-				sendMessage("/vid/label_black",map.get(index).getName(), txAddr);
-				log.debug("setting black clip to black.jpg index "+index);
-				foundBlackClip = true;
+				sendMessage("/vid/label_"+index,map.get(index).getName(), txAddr);
+				if (isImage(index)) {
+					sendMessage("/vid/label_"+index+"/color","green", txAddr);
+					sendMessage("/vid/button_"+index+"/color","green", txAddr);
+				} else {
+					sendMessage("/vid/label_"+index+"/color","red", txAddr);
+					sendMessage("/vid/button_"+index+"/color","red", txAddr);
+					
+				}
+				if (map.get(index).getPath().getFileName().toString().equals(pauseClip)) {
+					pauseClipIndex = index;
+					sendMessage("/vid/label_pause",map.get(index).getName(), txAddr);
+					log.debug("setting pause clip to "+pauseClip+" index "+index);
+					foundPauseClip = true;
+				}
+				if (map.get(index).getPath().getFileName().toString().equals("black.jpg")) {
+					blackClipIndex = index;
+					sendMessage("/vid/label_black",map.get(index).getName(), txAddr);
+					log.debug("setting black clip to black.jpg index "+index);
+					foundBlackClip = true;
+				}
+			} else {
+				sendMessage("/vid/label_"+index+"/visible",new Double(0),txAddr);
+				sendMessage("/vid/button_"+index+"/visible",new Double(0),txAddr);
 			}
 		}
 		if (foundPauseClip == false) {

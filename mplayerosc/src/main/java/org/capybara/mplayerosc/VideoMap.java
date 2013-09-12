@@ -27,7 +27,7 @@ public class VideoMap {
 		videoList.clear();
 		int i = 1;
 		try (DirectoryStream<Path> stream =
-		     Files.newDirectoryStream(path, "*.{avi,jpg,png,mov}")) {
+		     Files.newDirectoryStream(path, "*.{avi,jpg,png,mov,mpg,mp4}")) {
 		    for (Path entry: stream) {
 		    	String videoName = FilenameUtils.removeExtension(entry.getFileName().toString());
 		    	videoList.put(i, new Video(videoName, 	entry, i));
